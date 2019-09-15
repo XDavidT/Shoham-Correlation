@@ -2,6 +2,9 @@
   "system-name": "Siem-Correlation",
   "logs-db-name": "clientManager",
   "logs-collection-name": "clientLog",
+  "policy-db-name": "policyManager",
+  "rules-collection-name": "rules",
+  "events-collection-name": "events",
   "time_to_load": 3600,
   "logs-from-X-hours" : 12
 }
