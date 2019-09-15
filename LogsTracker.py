@@ -27,6 +27,7 @@ def Rule_Translate(setting,rules,rule_id):
     except:
         client = Mongo_Connection()
         rules_collection = client[setting['policy-db-name']][setting['rules-collection-name"']]
-        rules[rule_id] = rules_collection.find_one({"_id":rule_id})
+        rule_from_db = rules_collection.find_one({"_id":rule_id})
+        rules[rule_id] = rule_from_db.rule #TODO: test if that working
         Save_Rules(rules) #Save the new rule to cache
         return rules[rule_id]
