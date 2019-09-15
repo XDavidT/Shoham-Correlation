@@ -1,0 +1,7 @@
+{
+  "system-name": "Siem-Correlation",
+  "logs-db-name": "clientManager",
+  "logs-collection-name": "clientLog",
+  "time_to_load": 3600,
+  "logs-from-X-hours" : 12
+}
