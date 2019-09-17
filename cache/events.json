@@ -1,0 +1,19 @@
+[
+  {
+    "_id": "1",
+    "name": "User Forgot Password",
+    "Description": "When user try to login with wrong password more then 3 times",
+    "rules": [
+      {
+        "rule_id":"2",
+        "timeout":"120",
+        "repeated": "5"
+      },
+      {
+        "rule_id":"5",
+        "timeout":"240",
+        "repeated": "1"
+      }
+    ]
+  }
+]

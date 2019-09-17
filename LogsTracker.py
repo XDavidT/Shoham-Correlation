@@ -10,6 +10,12 @@ def LogsTracker(setting):
             {'insert_time': {'$gte': last_time_delta}}):  # List is already from old time to last
         print(log)
 
+
+def First_Rule_in_Events():
+    with open('cache/events.json','r') as events_file:
+        pass #TODO: Handle events
+
+
 def Load_Rules():
     with open('cache/rules.json') as rules_file:
         rules = json.load(rules_file)
@@ -21,10 +27,12 @@ def Save_Rules(rules):
         rules_file.write(rules_dump)
         rules_file.close()
 
+# When other function ask what is that rule id,
+# Rule translate gave back the query for the DB
 def Rule_Translate(setting,rules,rule_id):
     try:    #If we found it in cache
         return rules[rule_id]
-    except:
+    except: #Else get it from DB
         client = Mongo_Connection()
         rules_collection = client[setting['policy-db-name']][setting['rules-collection-name"']]
         rule_from_db = rules_collection.find_one({"_id":rule_id})
