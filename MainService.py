@@ -1,12 +1,15 @@
 import time,json
-import threading
 from LogsTracker import *
+from CacheHandler import Load_Setting
 
 # Get setting from setting file (json)
-with open('setting/setting.json') as config_file:
-    setting = json.load(config_file)
-
+setting = Load_Setting()
 
 while True:
-    LogsTracker(setting) #TODO: put in thread with timeout
-    time.sleep(setting['time_to_load'])
+    try:
+        logsTrackerService = LogsTracker_service()
+        time.sleep(setting['time_to_load'])
+        if logsTrackerService.LogsThreadStatus():
+            print("thread didn't stop yet !!")
+    except Exception as e:
+        print(e)

@@ -3,8 +3,8 @@
   "logs-db-name": "clientManager",
   "logs-collection-name": "clientLog",
   "policy-db-name": "policyManager",
-  "rules-collection-name": "rules",
-  "events-collection-name": "events",
+  "rules-collection-name": "rules_dev",
+  "events-collection-name": "events_dev",
   "time_to_load": 3600,
-  "logs-from-X-hours" : 12
+  "logs-from-X-hours" : 1
 }

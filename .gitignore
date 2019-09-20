@@ -1,2 +1,4 @@
 # Project exclude paths
 /venv/
+/cache/events.json
+/cache/rules.json
