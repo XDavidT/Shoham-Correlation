@@ -1,14 +1,1 @@
-[
-  {
-    "_id": "2",
-    "name": "Wrong Password in login",
-    "field": "log_id",
-    "value": "154"
-  },
-  {
-    "_id": "5",
-    "name": "Access denied to network drive",
-    "field": "log_category",
-    "value": "58"
-  }
-]
+[{"_id": "2", "name": "Wrong Password in login", "field": "log_id", "value": "154"},{"_id": "5", "name": "Access denied to network drive", "field": "log_category", "value": "58"}]

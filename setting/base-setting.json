@@ -1,4 +1,4 @@
 {
-  "mongo-server": "13.68.170.154",
-  "mongo-port": "27017"
+  "mongo-server": "mongo.davidt.net",
+  "mongo-port": "27018"
 }

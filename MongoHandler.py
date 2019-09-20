@@ -7,3 +7,6 @@ def Mongo_Connection():
 
     client = MongoClient('mongodb://' + b_setting['mongo-server'] + ':' + b_setting['mongo-port'] + '/')
     return client
+
+
+
