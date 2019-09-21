@@ -5,6 +5,6 @@
   "policy-db-name": "policyManager",
   "rules-collection-name": "rules_dev",
   "events-collection-name": "events_dev",
-  "time_to_load": 3600,
+  "time_to_load": 10800 ,
   "logs-from-X-hours" : 1
 }
