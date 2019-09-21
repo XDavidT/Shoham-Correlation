@@ -1,4 +1,4 @@
-import time,json
+import time
 from LogsTracker import *
 from CacheHandler import Load_Setting
 
