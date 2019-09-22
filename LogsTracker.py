@@ -33,6 +33,7 @@ class LogsTracker_service():
             for log in results:  # List is already from old time to last
                 self.DumpDocumentToMongo(event, log)
 
+        client.close()
         print("thread " + str(th.get_ident()) + " finish") # Dev print
 
     def LogsThreadStatus(self):
@@ -54,8 +55,11 @@ class LogsTracker_service():
                 print('Insert Log Status: OK.') # Dev print
             except Exception as e:
                 print("Insert Log Status: Error ->"+str(e)) # Dev print
+
+            client.close()
         elif(len(event['rules']) < 1):
             print("error - no rules in event"+ str(event['_id']))
+
         else:
             pass
             # TODO: make final event
