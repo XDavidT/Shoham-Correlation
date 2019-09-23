@@ -36,6 +36,7 @@ def Sync_Rules(setting):
                 if i !=number_of_rules:                         # Check for last one ( need ignore last comma )
                     rules_cache.write(',')
             rules_cache.write('}')
+        client.close()
     except Exception as e:
         print(e)
 
@@ -52,7 +53,9 @@ def Sync_Events(setting):
                 if i !=number_of_events:                          # extra comma (',')
                     events_cache.write(',')
             events_cache.write(']')
+        client.close()
     except Exception as e:
         print (e)
+
 
 # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - #
