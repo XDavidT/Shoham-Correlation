@@ -7,6 +7,5 @@
   "events-collection-name": "events_dev",
   "semi-alert-collection-name": "semi-open",
   "time_to_load": 10800 ,
-  "time_to_semi": 3600 ,
   "logs-from-X-hours" : 1
 }
