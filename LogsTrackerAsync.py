@@ -16,9 +16,33 @@ async def LogsTracker_service():
     logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
     last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=setting['logs-from-X-hours'])
 
-    for event in events:  # Search for each event
-        rule = rules[event['rules'][0]['rule_id']]  # Check only FIRST rule from each event
-        print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value'])) # Dev printing
+    for event in events:                                          # Search for each event
+        devices = []
+        rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
+        print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
+
+        if events[event]['type'] is "local":
+            results = logs_collection.find(  # Build the query
+                {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
+                 rule['field']: rule['value']})  # User first rule field:value
+            for log in results:
+                if log[setting['local_based_on']] not in devices:
+                    devices.append(log[setting['local_based_on']])
+                    await DumpDocumentToMongo(client,events[event],log)
+
+        elif events[event]['type'] is "global":
+            results = logs_collection.find(  # Build the query
+                {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
+                 rule['field']: rule['value']})
+            for log in results:
+                if log[setting['local_based_on']] not in devices:
+                    devices.append(log[setting['local_based_on']])
+            devices_found = len(devices)
+            #TODO: insert to semi-global in mongo
+        else:
+            print('no event type')
+
+
 
         results = logs_collection.find(                 # Build the query
             {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )

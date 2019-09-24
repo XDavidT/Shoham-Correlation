@@ -6,6 +6,7 @@
   "rules-collection-name": "rules_dev",
   "events-collection-name": "events_dev",
   "semi-alert-collection-name": "semi-open",
+  "local_based_on": "hostname",
   "time_to_load": 10800 ,
   "logs-from-X-hours" : 1
 }
