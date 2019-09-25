@@ -21,62 +21,63 @@ async def LogsTracker_service():
         rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
         print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
 
-        if events[event]['type'] is "local":
-            results = logs_collection.find(  # Build the query
+        # -- Local -- #
+        if events[event]['type'] is "local":                # Log is LOCAL only, and need to watch it.
+            results = logs_collection.find(                 # Build the query
                 {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
-                 rule['field']: rule['value']})  # User first rule field:value
-            for log in results:
-                if log[setting['local_based_on']] not in devices:
-                    devices.append(log[setting['local_based_on']])
-                    await DumpDocumentToMongo(client,events[event],log)
+                 rule['field']: rule['value']})             # User first rule field:value
 
-        elif events[event]['type'] is "global":
-            results = logs_collection.find(  # Build the query
+            for log in results:
+                if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
+                    devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
+                    asyncio.get_event_loop().run_until_complete(DumpDocumentToMongoLocalLog(client,events[event],log))
+        # -- Global -- #
+        elif events[event]['type'] is "global":             # Log is GLOBAL, and need to get the scale
+            results = logs_collection.find(                 # Build the query
                 {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
                  rule['field']: rule['value']})
-            for log in results:
-                if log[setting['local_based_on']] not in devices:
+
+            for log in results:                             # We only care how much Devices have the log
+                if log[setting['local_based_on']] not in devices:   # No double event from same device
                     devices.append(log[setting['local_based_on']])
             devices_found = len(devices)
             #TODO: insert to semi-global in mongo
+
+        # -- Unknown -- #
         else:
             print('no event type')
-
-
-
-        results = logs_collection.find(                 # Build the query
-            {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
-             rule['field']: rule['value']})             # User first rule field:value
-
-        for log in results:  # List is from old time to last - > create events
-            asyncio.get_event_loop().run_until_complete(DumpDocumentToMongo(client,event, log))
 
     client.close()
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
+# Only occur once when first rule detect in event
+async def DumpDocumentToMongoLocalLog(client, event, log):
 
-async def DumpDocumentToMongo(client, event, log):
-    # This function
-    if(len(event['rules']) >= 1):    # if the event have only 1 rule, won't stop here
-        setting = Load_Setting()
+    if(len(event['rules']) >= 1 or event['rules'][0]['repeated'] > 1):  # If the event have only 1 rule, won't stop here
+        setting = Load_Setting()                                        # Or the rule repeat more then once
+
         log_dump = {
             'event': event['_id'],
             'step': 0, # Mean rule['0'] occur
+            'curr_repeat': '1',
             'log': [log],
             'rules': event['rules']
         }
         try:
-            semi_open = client[setting['policy-db-name']]['semi-open']
+            semi_open = client[setting['policy-db-name']]['semi-open-local'] # TODO: add to setting semi-open-local
             semi_open.insert_one(log_dump)
             print('Insert Log Status: OK.') # Dev print
         except Exception as e:
             print("Insert Log Status: Error ->"+str(e)) # Dev print
 
-    elif( len(event['rules']) < 1 ):    # if event have less then 1 rule - its bug - we have problem.
+
+    elif(len(event['rules']) is 1 and event['rules'][0]['repeated'] is 1):
+        SuccessEvent()
+
+    else:  # if event have less then 1 rule - its bug - we have problem.
         print("error - no rules in event"+ str(event['_id']))   # data to fix the problem
 
-    else:   # This case is happen only if there is 1 rule in event, so go to success
-        SuccessEvent()
+# When finish do nothing, the service that check Semi - will find it in db.
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
