@@ -7,8 +7,8 @@ from CacheHandler import Load_Setting
 async def main():
     while True:
         LogsTracker_FirstTrigger = loop.create_task(LogsTracker_service())
-        # LogsTracker_SemiAlert = loop.create_task(CheckSemi())
-        await asyncio.wait([LogsTracker_FirstTrigger])
+        LogsTracker_SemiAlert = loop.create_task(CheckSemi())
+        await asyncio.wait([LogsTracker_FirstTrigger, LogsTracker_SemiAlert])
         await asyncio.sleep(setting['time_to_load'])
 
 
