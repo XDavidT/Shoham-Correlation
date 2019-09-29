@@ -4,7 +4,7 @@ from CacheHandler import *
 from EventComplete import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # TODO: Separate type local/global
-async def LogsTracker_service():
+def LogsTracker_service():
     print("LogsTracker_service - Flag 1#")
     # Getting all data from Cache (from db sync)
     setting = Load_Setting()
@@ -21,96 +21,102 @@ async def LogsTracker_service():
         rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
         print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
 
-        results = logs_collection.find(  # Build the query
+        results = logs_collection.find(                 # Build the query
             {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
              rule['field']: rule['value']})             # User first rule field:value
 
+
         # -- Local -- #
-        if events[event]['type'] is "local":                # Log is LOCAL only, and need to watch it.
+        if events[event]['type'] == 'local':                # Log is LOCAL only, and need to watch it.
             for log in results:
                 if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
                     devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
-                    asyncio.get_event_loop().run_until_complete(DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']]))
+                    DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']])
 
         # -- Global -- #
-        elif events[event]['type'] is "global":             # Log is GLOBAL, and need to get the scale
+        elif events[event]['type'] == "global":             # Log is GLOBAL, and need to get the scale
             logs = []
             for log in results:                             # We only care how much Devices have the log
                 if log[setting['local_based_on']] not in devices:   # No double event from same device
                     devices.append(log[setting['local_based_on']])
                     logs.append(log)
-            asyncio.get_event_loop().run_until_complete(DumpDocumentToMongo(client, events[event], logs, devices=devices))
+            DumpDocumentToMongo(client, events[event], logs, devices=devices)
 
         # -- Unknown -- #
         else:
             print('no event type')
 
     client.close()
+    print("Flag 1# is done")
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 # Only occur once when first rule detect in event - Not Async - run_until_complete
-async def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
-    '''
-    This statement checking that current Event have more then 1 rule in list,
-    Or the rule is repeated. If so, it will create semi-event.
-    Else, Jump to success and dump Final function
-    '''
+def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
+    print("Flag 3#")
+    setting = Load_Setting()
 
-    if(len(event['rules']) >= 1 or event['rules'][0]['repeated'] > 1):
-        setting = Load_Setting()
+    log_dump = {
+        'event': event['_id'],
+        'step': 0,  # Mean rule['0'] occur,
+        'sum_steps': len(event['rules']),
+        'curr_repeat': 0,
+        'type': event['type'],
+        'log': [log],
+        'rules': event['rules']
+    }
 
-        log_dump = {
-            'event': event['_id'],
-            'step': 0,   # Mean rule['0'] occur,
-            'sum_steps': len(event['rules']),
-            'curr_repeat': '1',
-            'type': event['type'],
-            'log': [log],
-            'rules': event['rules']
-        }
-
-        # If event type is global, add the devices
-        if(event['type'] is "global"):
-            log_dump['devices'] = devices
-        # But if it's local, it's need one device per each semi-event
-        else:
-            log_dump['device'] = device_name
-
-        try:
-            semi_open = client[setting['policy-db-name']]['semi-open'] # TODO: add to setting semi-open-local
-
-            '''
-            We need to check that no duplicate will be in our semi-event DB
-            by this statement we can assure this type of event & this device aren't there
-            '''
-            if ( event['type'] is "local"
-                    and
-                    (semi_open.find_one({'event':event['_id'], 'device':device_name}) is not None) ):
-                return
-            else:
-                semi_open.insert_one(log_dump)
-                print('Insert Log Status: OK.')           # Dev print
-        except Exception as e:
-            print("Insert Log Status: Error -> "+str(e))  # Dev print
-
-
-    elif(len(event['rules']) is 1 and event['rules'][0]['repeated'] is 1):
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#S
+    # One rule & one repeat, we done
+    if (len(event['rules']) == 1 and event['rules'][0]['repeated'] == 1):
         SuccessEvent()
 
-    else:  # if event have less then 1 rule - its bug - we have problem.
-        print("error - no rules in event"+ str(event['_id']))   # data to fix the problem
+    # If the current rule need to be repeat
+    elif(event['rules'][0]['repeated'] > 1):
+        log_dump['curr_repeat'] = 1
+
+    # Or we need to go next rule
+    elif(len(event['rules']) > 1):
+        log_dump['step'] = 1
+
+
+    # Check for global/ local
+    if(event['type'] == "global"):
+        log_dump['devices'] = devices
+    # But if it's local, it's need one device per each semi-event
+    else:
+        log_dump['device'] = device_name
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#E
+
+    try:
+        semi_open = client[setting['policy-db-name']]['semi-open'] # TODO: add to setting semi-open-local
+        '''
+        We need to check that no duplicate will be in our semi-event DB
+        by this statement we can assure this type of event & this device aren't there
+        '''
+        if ( event['type'] == "local"
+                and
+                (semi_open.find_one({'event':event['_id'], 'device':device_name}) is not None) ):
+            print("Already in handle...")
+            return
+        else:
+            semi_open.insert_one(log_dump)
+            print('Insert Log Status: OK.')           # Dev print
+    except Exception as e:
+        print("Insert Log Status: Error -> "+str(e))  # Dev print
+
 
 # When finish do nothing, the service that check Semi - will find it in db.
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
-async def CheckSemi():
+def CheckSemi():
     print("Flag 2#")
 
     # declaration & tools
     client = Mongo_Connection()
     setting = Load_Setting()
-    rules = Load_Rules()
+    rules = Load_Rules(setting)
     semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
 
     semi_alert_list_size = semi_collection.find({}).count()
@@ -121,21 +127,36 @@ async def CheckSemi():
         print("Found semi-waiting for me ! Start working !")
 
         for log_document in semi_collection.find({}):   # find all the waiting logs
-
-            curr_step = log_document['step']                        # Find what rule is the current rule
+            #Need to know what is curren rule
+            curr_step = log_document['step']
+            timeout = log_document['rules'][curr_step]['timeout']
             rule_id = log_document['rules'][curr_step]['rule_id']
-            rule = rules[rule_id]
-            timeout_to_next_log = log_document['rules'][curr_step]['timeout']
+            rule = rules[str(rule_id)]
+
             last_log_time = log_document['log'][-1]['insert_time']
+            time_delta = last_log_time + datetime.timedelta(seconds=timeout)
+
             #TODO: check time interval before action
 
             logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
 
-            if log_document['type'] is 'local':
-                first_log = logs_collection.find_one({rule['field']: rule['value']}) #TODO: check by device
-                ReviewLocalLog(log_document)
+            if log_document['type'] == 'local':
+                first_log = logs_collection.find_one({
+                    rule['field']: rule['value'],                       # Next rule
+                    setting['local_based_on']:log_document['device'],   # Same device
+                    "$lte":time_delta,                                  # Before +Timedelta
+                    "$get":last_log_time})                              # After last log we have
+                #TODO: check by device
+                print(first_log)
             else:
-                ReviewGlobalLog(log_document)
+                results = logs_collection.find({
+                    rule['field']: rule['value'],                       # Next rule
+                    "$lte":time_delta,                                  # Before +Timedelta
+                    "$get":last_log_time})                              # After last log we have
+                for log in results:
+                    print(log)
+
+    print("Flag 2# is done !")
             # step = log_document['step']+1
             # rule = rules[log_document['rules'][step]['rule_id']] # Return current rule (+1 from back one)
             # logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
