@@ -1,7 +1,7 @@
-import time
-# from LogsTracker import *
-from LogsTrackerAsync import *
-from CacheHandler import Load_Setting
+#Functions import
+from ActiveFunctions.LogsTrackerAsync import LogsTracker_service
+from ActiveFunctions.SemiAlert import CheckSemi
+
 
 LogsTracker_service()
 CheckSemi()

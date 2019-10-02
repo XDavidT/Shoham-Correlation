@@ -1,7 +1,4 @@
-import asyncio
-import datetime
-from CacheHandler import *
-from EventComplete import *
+from ActiveFunctions.Headers import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # TODO: Separate type local/global
 def LogsTracker_service():
@@ -110,75 +107,6 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
-def CheckSemi():
-    print("Flag 2#")
 
-    # declaration & tools
-    client = Mongo_Connection()
-    setting = Load_Setting()
-    rules = Load_Rules(setting)
-    semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
-
-    semi_alert_list_size = semi_collection.find({}).count()
-    if( semi_alert_list_size == 0 ): # Nothing waiting
-        print("No semi-waiting for me, until next round")
-        return
-    else:
-        print("Found semi-waiting for me ! Start working !")
-
-        for log_document in semi_collection.find({}):   # find all the waiting logs
-            #Need to know what is curren rule
-            curr_step = log_document['step']
-            timeout = log_document['rules'][curr_step]['timeout']
-            rule_id = log_document['rules'][curr_step]['rule_id']
-            rule = rules[str(rule_id)]
-
-            last_log_time = log_document['log'][-1]['insert_time']
-            time_delta = last_log_time + datetime.timedelta(seconds=timeout)
-
-            #TODO: check time interval before action
-
-            logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
-
-            if log_document['type'] == 'local':
-                first_log = logs_collection.find_one({
-                    rule['field']: rule['value'],                       # Next rule
-                    setting['local_based_on']:log_document['device'],   # Same device
-                    "$lte":time_delta,                                  # Before +Timedelta
-                    "$get":last_log_time})                              # After last log we have
-                #TODO: check by device
-                print(first_log)
-            else:
-                results = logs_collection.find({
-                    rule['field']: rule['value'],                       # Next rule
-                    "$lte":time_delta,                                  # Before +Timedelta
-                    "$get":last_log_time})                              # After last log we have
-                for log in results:
-                    print(log)
-
-    print("Flag 2# is done !")
-            # step = log_document['step']+1
-            # rule = rules[log_document['rules'][step]['rule_id']] # Return current rule (+1 from back one)
-            # logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
-            #
-            # result = logs_collection.find_one({rule['field']: rule['value']})
-            # # TODO: Add only if time is OK and after insert time ( of last log )
-            # if (result != None): # Check if there is any result
-            #
-            #     semi_collection.update_one({"_id":log_document['_id']},{
-            #         "$set":{            # Should change the step to current one
-            #             "step": step
-            #         },
-            #         "$push":{           # Add to logs the new log that found
-            #             "log": result
-            #         }
-            #     })
-
-# //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
-
-def ReviewLocalLog(log_document):
-    pass
-def ReviewGlobalLog(log_document):
-    pass
 # logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
 # semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
