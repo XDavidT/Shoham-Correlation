@@ -6,6 +6,7 @@
   "rules-collection-name": "rules_dev",
   "events-collection-name": "events_dev",
   "semi-alert-collection-name": "semi-open",
+  "fail-alert-collection-name": "fail-alert",
   "local_based_on": "mac_add",
   "time_to_load": 10800 ,
   "logs-from-X-hours" : 1
