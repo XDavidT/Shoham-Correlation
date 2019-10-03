@@ -1,5 +1,5 @@
 #Functions import
-from ActiveFunctions.LogsTrackerAsync import LogsTracker_service
+from ActiveFunctions.LogsTracker import LogsTracker_service
 from ActiveFunctions.SemiAlert import CheckSemi
 
 
