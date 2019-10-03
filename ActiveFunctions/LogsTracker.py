@@ -55,7 +55,6 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
     log_dump = {
         'event': event['_id'],
         'step': 0,  # Mean rule['0'] occur,
-        'sum_steps': len(event['rules']),
         'curr_repeat': 0,
         'type': event['type'],
         'log': [log],

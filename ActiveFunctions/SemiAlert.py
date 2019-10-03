@@ -30,26 +30,10 @@ def CheckSemi():
         if (len(log) == 0):  # If nothing returned
             CheckRelevant(client,log_document,time_delta,setting)
         else:
-            HandleTheLog(log_document)
+            HandleTheLog(semi_collection, log_document, curr_step, log)
 
         # TODO: but if something was returned - do->
     print("Flag 2# is done !")
-            # step = log_document['step']+1
-            # rule = rules[log_document['rules'][step]['rule_id']] # Return current rule (+1 from back one)
-            # logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
-            #
-            # result = logs_collection.find_one({rule['field']: rule['value']})
-            # # TODO: Add only if time is OK and after insert time ( of last log )
-            # if (result != None): # Check if there is any result
-            #
-            #     semi_collection.update_one({"_id":log_document['_id']},{
-            #         "$set":{            # Should change the step to current one
-            #             "step": step
-            #         },
-            #         "$push":{           # Add to logs the new log that found
-            #             "log": result
-            #         }
-            #     })
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
@@ -59,7 +43,8 @@ def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time)
             rule['field']: rule['value'],  # Next rule
             setting['local_based_on']: log_document['device'],  # Same device
             "$lte": time_delta,  # Before: (Last log + Timeout) = delta
-            "$gte": last_log_time})  # After last log we have
+            "$gte": last_log_time})  # After last log we have  #TODO: check error massage
+
     elif LogType(log_document) == "global":
         log_list = []
         results = logs_collection.find({
@@ -74,16 +59,28 @@ def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time)
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
-def HandleTheLog(log_document): #TODO: handle !
+def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
     if(IsDone(log_document)):
+        '''
+        If we update the event here to next repeat/step, and Handle was calling again,
+        it mean we found the last log needed, and we can move it to Final collection.
+        '''
         SuccessEvent()
+        return          # In this case, the function will be stop
+
+    if log_document['rules'][curr_step]['repeated'] > log_document['curr_repeat']:
+        log_document['curr_repeat'] += 1
+
+    elif log_document['rules'][curr_step]['repeated'] == log_document['curr_repeat']:
+        log_document['curr_repeat'] = 0
+        log_document['step'] += 1
+
     else:
-        if LogType(log_document) == 'local':
-            pass
-        elif LogType(log_document) == 'global':
-            pass
-        else:
-            print("error in handle type")  # Dev print
+        print("Unknown handler ")
+
+    log_document['log'].append(logs)
+
+    semi_collection.save(log_document)
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 def CheckRelevant(client,log_document,time_delta,setting):
