@@ -17,22 +17,24 @@ def CheckSemi():
 
     print("Found semi-waiting for me ! Start working !")  # Dev printing
     for log_document in semi_collection.find({}):   # find all the waiting logs
-        # Handle one document in time
-        curr_step = log_document['step']
-        timeout = log_document['rules'][curr_step]['timeout']
-        rule_id = log_document['rules'][curr_step]['rule_id']
-        rule = rules[str(rule_id)]
-        last_log_time = log_document['log'][-1]['insert_time']  # -1 take the last in array
-        time_delta = last_log_time + datetime.timedelta(seconds=timeout)  # TODO: check time interval before action
-        logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
+        while True:
+            # Handle one document in time
+            curr_step = log_document['step']
+            timeout = log_document['rules'][curr_step]['timeout']
+            rule_id = log_document['rules'][curr_step]['rule_id']
+            rule = rules[str(rule_id)]
+            last_log_time = log_document['log'][-1]['insert_time']  # -1 take the last in array
+            time_delta = last_log_time + datetime.timedelta(seconds=timeout)  # TODO: check time interval before action
+            logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
 
-        log = FindLog(logs_collection,log_document,rule,setting,time_delta,last_log_time)
-        if (len(log) == 0):  # If nothing returned
-            CheckRelevant(client,log_document,time_delta,setting)
-        else:
-            HandleTheLog(semi_collection, log_document, curr_step, log)
+            log = FindLog(logs_collection,log_document,rule,setting,time_delta,last_log_time)
+            if (len(log) == 0):  # If nothing returned
+                CheckRelevant(client,log_document,time_delta,setting)
+                break # stop while true
+            else:
+                HandleTheLog(semi_collection, log_document, curr_step, log)
 
-        # TODO: but if something was returned - do->
+
     print("Flag 2# is done !")
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
