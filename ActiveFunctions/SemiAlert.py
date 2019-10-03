@@ -11,11 +11,11 @@ def CheckSemi():
 
     semi_alert_list_size = semi_collection.find({}).count()  # Somebody waiting for me ?
     if( semi_alert_list_size == 0 ): # Nothing waiting
-        print("No semi-waiting for me, until next round")
+        print("No semi-waiting for me, until next round")  # Dev printing
         return
     # If semi-db is empty, stop the function (using 'return') - else do that:
 
-    print("Found semi-waiting for me ! Start working !")
+    print("Found semi-waiting for me ! Start working !")  # Dev printing
     for log_document in semi_collection.find({}):   # find all the waiting logs
         # Handle one document in time
         curr_step = log_document['step']
@@ -59,13 +59,13 @@ def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time)
             rule['field']: rule['value'],  # Next rule
             setting['local_based_on']: log_document['device'],  # Same device
             "$lte": time_delta,  # Before: (Last log + Timeout) = delta
-            "$get": last_log_time})  # After last log we have
+            "$gte": last_log_time})  # After last log we have
     elif LogType(log_document) == "global":
         log_list = []
         results = logs_collection.find({
             rule['field']: rule['value'],  # Next rule
             "$lte": time_delta,  # Before: (Last log + Timeout) = delta
-            "$get": last_log_time})  # After last log we have
+            "$gte": last_log_time})  # After last log we have
         for log in results:
             log_list.append(log)
         return log_list
@@ -75,12 +75,15 @@ def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time)
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
 def HandleTheLog(log_document): #TODO: handle !
-    if LogType(log_document) == 'local':
-        pass
-    elif LogType(log_document) == 'global':
-        pass
+    if(IsDone(log_document)):
+        SuccessEvent()
     else:
-        print("error in handle type")  # Dev print
+        if LogType(log_document) == 'local':
+            pass
+        elif LogType(log_document) == 'global':
+            pass
+        else:
+            print("error in handle type")  # Dev print
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 def CheckRelevant(client,log_document,time_delta,setting):
