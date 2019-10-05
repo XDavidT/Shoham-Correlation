@@ -32,7 +32,9 @@ def CheckSemi():
                 CheckRelevant(client,log_document,time_delta,setting)
                 break # stop while true
             else:
-                HandleTheLog(semi_collection, log_document, curr_step, log)
+                # Event that complete in success will return true, then we need to break "while true"
+                if HandleTheLog(semi_collection, log_document, curr_step, log):
+                    break
 
 
     print("Flag 2# is done !")
@@ -68,7 +70,7 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
         it mean we found the last log needed, and we can move it to Final collection.
         '''
         SuccessEvent()
-        return          # In this case, the function will be stop
+        return True          # In this case, the function will be stop
 
     if log_document['rules'][curr_step]['repeated'] > log_document['curr_repeat']:
         log_document['curr_repeat'] += 1
@@ -83,6 +85,7 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
     log_document['log'].append(logs)
 
     semi_collection.save(log_document)
+    return False
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 def CheckRelevant(client,log_document,time_delta,setting):
