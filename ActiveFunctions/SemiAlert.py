@@ -35,6 +35,7 @@ def CheckSemi():
             else:
                 # Event that complete in success will return true, then we need to break "while true"
                 if HandleTheLog(semi_collection, log_document, curr_step, log):
+                    SuccessEvent(client, log_document,setting)
                     break
 
 
@@ -74,7 +75,6 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
         If we update the event here to next repeat/step, and Handle was calling again,
         it mean we found the last log needed, and we can move it to Final collection.
         '''
-        SuccessEvent()
         return True          # In this case, the function will be stop
 
     if log_document['rules'][curr_step]['repeated'] > log_document['curr_repeat']:
