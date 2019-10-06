@@ -43,7 +43,7 @@ def CheckSemi():
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
 def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time):
-    if LogType(log_document) == 'local':
+    if log_document['type'] == 'local':
         return logs_collection.find_one({
             rule['field']: rule['value'],  # Next rule
             setting['local_based_on']: log_document['device'],  # Same device
@@ -52,7 +52,7 @@ def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time)
                 '$lte': time_delta}    # Before: (Last log + Timeout) = delta
         })     #TODO: check error massage
 
-    elif LogType(log_document) == "global":
+    elif log_document['type'] == "global":
         log_list = []
         results = logs_collection.find({
             rule['field']: rule['value'],  # Next rule
@@ -103,15 +103,14 @@ def CheckRelevant(client,log_document,time_delta,setting):
         # TODO: Move this to function 'FailEvent'
 
 def IsDone(log_document):
-    curr_step = log_document['step'] + 1  # +1 Since step is index of rule | 0 must be count
+    curr_step = log_document['step']  # +1 Since step is index of rule | 0 must be count
     sum_steps = len(log_document['rules'])
-    if(curr_step == sum_steps):
+    if(curr_step == (sum_steps - 1)):
         curr_repeart = log_document['curr_repeat']
         sum_repeat = log_document['rules'][curr_step]['repeated']
         if(curr_repeart == sum_repeat):
-            SuccessEvent()
             return True
-    return False
-
-def LogType(log_document):
-    return log_document['type']
+        else:
+            return False
+    else:
+        return False
