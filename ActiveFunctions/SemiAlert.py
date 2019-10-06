@@ -28,7 +28,8 @@ def CheckSemi():
             logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
 
             log = FindLog(logs_collection,log_document,rule,setting,time_delta,last_log_time)
-            if (len(log) == 0):  # If nothing returned
+            if (log is None):  # If nothing returned
+                print("NoneType !") # Dev print
                 CheckRelevant(client,log_document,time_delta,setting)
                 break # stop while true
             else:
@@ -46,15 +47,19 @@ def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time)
         return logs_collection.find_one({
             rule['field']: rule['value'],  # Next rule
             setting['local_based_on']: log_document['device'],  # Same device
-            "$lte": time_delta,  # Before: (Last log + Timeout) = delta
-            "$gte": last_log_time})  # After last log we have  #TODO: check error massage
+            'insert_time': {
+                '$gte': last_log_time,  # After last log we have
+                '$lte': time_delta}    # Before: (Last log + Timeout) = delta
+        })     #TODO: check error massage
 
     elif LogType(log_document) == "global":
         log_list = []
         results = logs_collection.find({
             rule['field']: rule['value'],  # Next rule
-            "$lte": time_delta,  # Before: (Last log + Timeout) = delta
-            "$gte": last_log_time})  # After last log we have
+            'insert_time': {
+                '$gte': last_log_time,  # After last log we have
+                '$lte': time_delta}    # Before: (Last log + Timeout) = delta
+        })  # After last log we have
         for log in results:
             log_list.append(log)
         return log_list
