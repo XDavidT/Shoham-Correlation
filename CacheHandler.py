@@ -7,6 +7,11 @@ def Load_Setting():
         setting = json.load(config_file)
     return setting
 
+def Load_AlertSetting():
+    with open('setting/alert-setting.json') as config_file:
+        setting = json.load(config_file)
+    return setting
+
 # Get rules/events from file to variable
 # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - #
 def Load_Rules(setting):

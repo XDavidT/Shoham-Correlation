@@ -64,7 +64,7 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#S
     # One rule & one repeat, we done
     if (len(event['rules']) == 1 and event['rules'][0]['repeated'] == 1):
-        SuccessEvent()
+        log_dump['curr_repeat'] = 1
 
     # If the current rule need to be repeat
     elif(event['rules'][0]['repeated'] > 1):
@@ -77,7 +77,7 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
 
     # Check for global/ local
     if(event['type'] == "global"):
-        log_dump['devices'] = devices
+        log_dump['device'] = devices
     # But if it's local, it's need one device per each semi-event
     else:
         log_dump['device'] = device_name
