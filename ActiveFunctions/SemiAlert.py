@@ -23,7 +23,7 @@ def CheckSemi():
             timeout = log_document['rules'][curr_step]['timeout']
             rule_id = log_document['rules'][curr_step]['rule_id']
             rule = rules[str(rule_id)]
-            last_log_time = log_document['log'][-1]['insert_time']  # -1 take the last in array
+            last_log_time = log_document['logs'][-1]['insert_time']  # -1 take the last in array
             time_delta = last_log_time + datetime.timedelta(seconds=timeout)  # TODO: check time interval before action
             logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
 
@@ -87,7 +87,11 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
     else:
         print("Unknown handler ")
 
-    log_document['log'].append(logs)
+    if(log_document['type'] == 'local'):
+        log_document['logs'].append(logs)
+    else: # We have to add them one by one
+        for log in logs:
+            log_document['logs'].append(log)
 
     semi_collection.save(log_document)
     return False
@@ -96,11 +100,7 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
 def CheckRelevant(client,log_document,time_delta,setting):
     # If our time is bigger then time delta - to alert isn't relevant
     if datetime.datetime.now() > time_delta:
-        semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
-        fail_collection = client[setting['policy-db-name']][setting['fail-alert-collection-name']]
-        fail_collection.insert_one(log_document)
-        semi_collection.delete_one(log_document)
-        # TODO: Move this to function 'FailEvent'
+        FailEvent(client,log_document,setting)
 
 def IsDone(log_document):
     curr_step = log_document['step']  # +1 Since step is index of rule | 0 must be count

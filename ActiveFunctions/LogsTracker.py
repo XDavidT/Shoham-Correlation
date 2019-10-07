@@ -57,7 +57,6 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
         'step': 0,  # Mean rule['0'] occur,
         'curr_repeat': 0,
         'type': event['type'],
-        'log': [log],
         'rules': event['rules']
     }
 
@@ -78,9 +77,11 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
     # Check for global/ local
     if(event['type'] == "global"):
         log_dump['device'] = devices
+        log_dump['logs'] = log
     # But if it's local, it's need one device per each semi-event
     else:
         log_dump['device'] = device_name
+        log_dump['logs'] = [log]
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#E
 

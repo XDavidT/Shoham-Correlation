@@ -8,5 +8,9 @@ def SuccessEvent(client, log_document,setting):
     success_collection.insert_one(log_document)
     semi_collection.delete_one(log_document)
     AlertOnEmail(log_document)
-    print(events[log_document['event']]['name'] + " alerted !!")
-    print("done success")
+
+def FailEvent(client,log_document,setting):
+    semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
+    fail_collection = client[setting['policy-db-name']][setting['fail-alert-collection-name']]
+    fail_collection.insert_one(log_document)
+    semi_collection.delete_one(log_document)
