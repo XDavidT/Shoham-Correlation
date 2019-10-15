@@ -8,5 +8,8 @@
   "events-collection-name": "events_dev",
   "semi-alert-collection-name": "semi-open",
   "fail-alert-collection-name": "fail-alert",
-  "success-alert-collection-name": "success-alert"
+  "success-alert-collection-name": "success-alert",
+  "system-mgm-db-name": "SystemManagment",
+  "setting-collection-name": "setting"
+
 }

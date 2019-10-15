@@ -1,15 +1,15 @@
 from MongoHandler import Mongo_Connection
 import json, os
 
-
-def Load_Setting():
-    with open('setting/setting.json') as config_file:
-        setting = json.load(config_file)
-    return setting
-
 def Load_BaseSetting():
     with open('setting/base-setting.json') as config_file:
         setting = json.load(config_file)
+    return setting
+
+def Load_Setting():
+    SyncSetting()
+    with open('setting/setting.json') as setting_file:
+        setting = json.load(setting_file)
     return setting
 
 def Load_AlertSetting():
@@ -68,6 +68,19 @@ def Sync_Events(setting):
         client.close()
     except Exception as e:
         print (e)
+
+def SyncSetting():
+    b_setting = Load_BaseSetting()
+    try:
+        client = Mongo_Connection()
+        setting_collection = client[b_setting['system-mgm-db-name']][b_setting['setting-collection-name']]
+        base_setting = setting_collection.find_one({'_id': 'basic-setting'})
+
+        with open('setting/setting.json','w') as setting_file:
+            setting_file.write(json.dumps(base_setting))
+
+    except Exception as e:
+        print(e)
 
 
 # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - # - #
