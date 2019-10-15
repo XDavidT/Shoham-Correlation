@@ -1,13 +1,17 @@
-from ActiveFunctions.Headers import *
+import datetime
+from MongoHandler import *
+from CacheHandler import Load_Rules, Load_Setting, Load_BaseSetting
+from ActiveFunctions.EventDone import *
+
 
 def CheckSemi():
     print("Semi-Alert Flag")
 
     # declaration & tools
     client = Mongo_Connection()
-    setting = Load_Setting()
-    rules = Load_Rules(setting)
-    semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
+    b_setting = Load_BaseSetting()
+    rules = Load_Rules(b_setting)
+    semi_collection = client[b_setting['policy-db-name']][b_setting['semi-alert-collection-name']]
 
     semi_alert_list_size = semi_collection.find({}).count()  # Somebody waiting for me ?
     if( semi_alert_list_size == 0 ): # Nothing waiting
@@ -24,18 +28,18 @@ def CheckSemi():
             rule_id = log_document['rules'][curr_step]['rule_id']
             rule = rules[str(rule_id)]
             last_log_time = log_document['logs'][-1]['insert_time']  # -1 take the last in array
-            time_delta = last_log_time + datetime.timedelta(seconds=timeout)  # TODO: check time interval before action
-            logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
+            time_delta = last_log_time + datetime.timedelta(seconds=timeout)
+            logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
 
-            log = FindLog(logs_collection,log_document,rule,setting,time_delta,last_log_time)
+            log = FindLog(logs_collection,log_document,rule,time_delta,last_log_time)
             if (log is None):  # If nothing returned
                 print("NoneType !") # Dev print
-                CheckRelevant(client,log_document,time_delta,setting)
+                CheckRelevant(client,log_document,time_delta,b_setting)
                 break # stop while true
             else:
                 # Event that complete in success will return true, then we need to break "while true"
                 if HandleTheLog(semi_collection, log_document, curr_step, log):
-                    SuccessEvent(client, log_document,setting)
+                    SuccessEvent(client, log_document,b_setting)
                     break
 
 
@@ -43,7 +47,8 @@ def CheckSemi():
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
-def FindLog(logs_collection,log_document, rule,setting,time_delta,last_log_time):
+def FindLog(logs_collection,log_document, rule,time_delta,last_log_time):
+    setting = Load_Setting()
     if log_document['type'] == 'local':
         return logs_collection.find_one({
             rule['field']: rule['value'],  # Next rule
@@ -97,10 +102,10 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
     return False
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
-def CheckRelevant(client,log_document,time_delta,setting):
+def CheckRelevant(client,log_document,time_delta,b_setting):
     # If our time is bigger then time delta - to alert isn't relevant
     if datetime.datetime.now() > time_delta:
-        FailEvent(client,log_document,setting)
+        FailEvent(client,log_document,b_setting)
 
 def IsDone(log_document):
     curr_step = log_document['step']  # +1 Since step is index of rule | 0 must be count

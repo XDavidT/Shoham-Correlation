@@ -1,4 +1,12 @@
 {
   "mongo-server": "mongo.davidt.net",
-  "mongo-port": "27018"
+  "mongo-port": "27018",
+  "logs-db-name": "clientManager",
+  "logs-collection-name": "clientLog",
+  "policy-db-name": "policyManager",
+  "rules-collection-name": "rules_dev",
+  "events-collection-name": "events_dev",
+  "semi-alert-collection-name": "semi-open",
+  "fail-alert-collection-name": "fail-alert",
+  "success-alert-collection-name": "success-alert"
 }

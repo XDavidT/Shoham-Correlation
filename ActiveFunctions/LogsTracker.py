@@ -1,16 +1,19 @@
-from ActiveFunctions.Headers import *
+import datetime
+from CacheHandler import Load_Setting, Load_BaseSetting, Load_Events, Load_Rules
+from MongoHandler import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # TODO: Separate type local/global
 def LogsTracker_service():
     print("LogsTracker_service - Flag 1#")
     # Getting all data from Cache (from db sync)
     setting = Load_Setting()
-    events = Load_Events(setting)
-    rules = Load_Rules(setting)
+    b_setting = Load_BaseSetting()
+    events = Load_Events(b_setting)
+    rules = Load_Rules(b_setting)
 
     # Get cursor to mongo collection - Client manager -> logs
     client = Mongo_Connection()
-    logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
+    logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
     last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=setting['logs-from-X-hours']) # Time Delta
 
     for event in events:                                          # Search for each event
@@ -22,22 +25,22 @@ def LogsTracker_service():
             {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
              rule['field']: rule['value']})             # User first rule field:value
 
+        if results.count() > 0:     # This line check that anything came up in the search
+            # -- Local -- #
+            if events[event]['type'] == 'local':                # Log is LOCAL only, and need to watch it.
+                for log in results:
+                    if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
+                        devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
+                        DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']])
 
-        # -- Local -- #
-        if events[event]['type'] == 'local':                # Log is LOCAL only, and need to watch it.
-            for log in results:
-                if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
-                    devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
-                    DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']])
-
-        # -- Global -- #
-        elif events[event]['type'] == "global":             # Log is GLOBAL, and need to get the scale
-            logs = []
-            for log in results:                             # We only care how much Devices have the log
-                if log[setting['local_based_on']] not in devices:   # No double event from same device
-                    devices.append(log[setting['local_based_on']])
-                    logs.append(log)
-            DumpDocumentToMongo(client, events[event], logs, devices=devices)
+            # -- Global -- #
+            elif events[event]['type'] == "global":             # Log is GLOBAL, and need to get the scale
+                logs = []
+                for log in results:                             # We only care how much Devices have the log
+                    if log[setting['local_based_on']] not in devices:   # No double event from same device
+                        devices.append(log[setting['local_based_on']])
+                        logs.append(log)
+                DumpDocumentToMongo(client, events[event], logs, devices=devices)
 
         # -- Unknown -- #
         else:
@@ -50,7 +53,7 @@ def LogsTracker_service():
 # Only occur once when first rule detect in event - Not Async - run_until_complete
 def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
     print("Flag 3#")
-    setting = Load_Setting()
+    b_setting = Load_BaseSetting()
 
     log_dump = {
         'event': event['_id'],
@@ -86,7 +89,7 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#E
 
     try:
-        semi_open = client[setting['policy-db-name']]['semi-open'] # TODO: add to setting semi-open-local
+        semi_open = client[b_setting['policy-db-name']]['semi-open'] # TODO: add to setting semi-open-local
         '''
         We need to check that no duplicate will be in our semi-event DB
         by this statement we can assure this type of event & this device aren't there
