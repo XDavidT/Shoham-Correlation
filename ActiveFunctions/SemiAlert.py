@@ -4,7 +4,7 @@ from CacheHandler import load_rules, load_setting, load_base_setting
 from ActiveFunctions.EventDone import *
 
 
-def CheckSemi():
+async def CheckSemi():
     print("Semi-Alert Flag")
 
     # declaration & tools

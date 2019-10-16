@@ -3,7 +3,7 @@ from CacheHandler import load_setting, load_base_setting, load_events, load_rule
 from MongoHandler import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # TODO: Separate type local/global
-def LogsTracker_service():
+async def LogsTracker_service():
     print("LogsTracker_service - Flag 1#")
     # Getting all data from Cache (from db sync)
     setting = load_setting()
@@ -110,7 +110,3 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
 # When finish do nothing, the service that check Semi - will find it in db.
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
-
-
-# logs_collection = client[setting['logs-db-name']][setting['logs-collection-name']]
-# semi_collection = client[setting['policy-db-name']][setting['semi-alert-collection-name']]
