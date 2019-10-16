@@ -6,7 +6,7 @@ from ActionsHandlers.EmailContentGen import HTML_Template
 
 
 def AlertOnEmail(log_document):
-    alrt_set = Load_AlertSetting()
+    alrt_set = load_alert_setting()
     msg_content = GetMsgContent(alrt_set)
 
     msg_content['Subject'] = 'Special alert of event: '

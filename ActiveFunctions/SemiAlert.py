@@ -1,6 +1,6 @@
 import datetime
 from MongoHandler import *
-from CacheHandler import Load_Rules, Load_Setting, Load_BaseSetting
+from CacheHandler import load_rules, load_setting, load_base_setting
 from ActiveFunctions.EventDone import *
 
 
@@ -9,8 +9,8 @@ def CheckSemi():
 
     # declaration & tools
     client = Mongo_Connection()
-    b_setting = Load_BaseSetting()
-    rules = Load_Rules(b_setting)
+    b_setting = load_base_setting()
+    rules = load_rules()
     semi_collection = client[b_setting['policy-db-name']][b_setting['semi-alert-collection-name']]
 
     semi_alert_list_size = semi_collection.find({}).count()  # Somebody waiting for me ?
@@ -48,7 +48,7 @@ def CheckSemi():
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 
 def FindLog(logs_collection,log_document, rule,time_delta,last_log_time):
-    setting = Load_Setting()
+    setting = load_setting()
     if log_document['type'] == 'local':
         return logs_collection.find_one({
             rule['field']: rule['value'],  # Next rule

@@ -1,7 +1,9 @@
 #Functions import
+from CacheHandler import main_sync
 from ActiveFunctions.LogsTracker import LogsTracker_service
 from ActiveFunctions.SemiAlert import CheckSemi
 
+main_sync()
 
 LogsTracker_service()
 CheckSemi()

@@ -1,6 +1,1 @@
-{
-  "smtp-server": "smtp.office365.com",
-  "smtp-server-port": 587,
-  "email-username": "siem-test@outlook.com",
-  "email-password": "b*6}.LdeCjx9"
-}
+{"_id": "alert-setting", "smtp-server": "smtp.office365.com", "smtp-server-port": 587, "email-username": "siem-test@outlook.com", "email-password": "b*6}.LdeCjx9"}

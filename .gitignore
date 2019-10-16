@@ -1,3 +1,5 @@
 # Project exclude paths
 /venv/
 /cache/
+/setting/basic-setting.json
+/setting/alert-setting.json

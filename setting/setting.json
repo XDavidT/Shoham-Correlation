@@ -1,1 +1,0 @@
-{"_id": "basic-setting", "system-name": "Siem-Correlation", "local_based_on": "mac_add", "time_to_load": 10800, "logs-from-X-hours": 1}

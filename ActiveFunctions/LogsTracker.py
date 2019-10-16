@@ -1,15 +1,15 @@
 import datetime
-from CacheHandler import Load_Setting, Load_BaseSetting, Load_Events, Load_Rules
+from CacheHandler import load_setting, load_base_setting, load_events, load_rules
 from MongoHandler import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 # TODO: Separate type local/global
 def LogsTracker_service():
     print("LogsTracker_service - Flag 1#")
     # Getting all data from Cache (from db sync)
-    setting = Load_Setting()
-    b_setting = Load_BaseSetting()
-    events = Load_Events(b_setting)
-    rules = Load_Rules(b_setting)
+    setting = load_setting()
+    b_setting = load_base_setting()
+    events = load_events()
+    rules = load_rules()
 
     # Get cursor to mongo collection - Client manager -> logs
     client = Mongo_Connection()
@@ -53,7 +53,7 @@ def LogsTracker_service():
 # Only occur once when first rule detect in event - Not Async - run_until_complete
 def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
     print("Flag 3#")
-    b_setting = Load_BaseSetting()
+    b_setting = load_base_setting()
 
     log_dump = {
         'event': event['_id'],
