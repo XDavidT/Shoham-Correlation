@@ -42,10 +42,11 @@ def LogsTracker_service():
                         logs.append(log)
                 DumpDocumentToMongo(client, events[event], logs, devices=devices)
 
-        # -- Unknown -- #
+            # -- Unknown -- #
+            else:
+                print('no event type - error')
         else:
-            print('no event type')
-
+            print("No logs match for that")
     client.close()
     print("Flag 1# is done")
 
