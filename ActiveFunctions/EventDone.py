@@ -4,7 +4,10 @@ import datetime
 def SuccessEvent(client, log_document,b_setting):
     semi_collection = client[b_setting['policy-db-name']][b_setting["semi-alert-collection-name"]]
     success_collection = client[b_setting['policy-db-name']][b_setting['success-alert-collection-name']]
-    log_document['offense-close-time'] = datetime.datetime.now()  # Discover time
+    log_document['offense_close_time'] = datetime.datetime.now()  # Discover time
+    log_document.pop('step')
+    log_document.pop('curr_repeat')
+    log_document.pop('rules')
 
     # Add to new collection, but only if it done, make the delete
     try:
