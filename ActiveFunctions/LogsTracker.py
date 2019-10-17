@@ -84,13 +84,13 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
         log_dump['logs'] = log
     # But if it's local, it's need one device per each semi-event
     else:
-        log_dump['device'] = device_name
+        log_dump['device'] = [device_name]
         log_dump['logs'] = [log]
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#E
 
     try:
-        semi_open = client[b_setting['policy-db-name']]['semi-open'] # TODO: add to setting semi-open-local
+        semi_open = client[b_setting['policy-db-name']][b_setting["semi-alert-collection-name"]]
         '''
         We need to check that no duplicate will be in our semi-event DB
         by this statement we can assure this type of event & this device aren't there

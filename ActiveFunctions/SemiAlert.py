@@ -52,7 +52,7 @@ def FindLog(logs_collection,log_document, rule,time_delta,last_log_time):
     if log_document['type'] == 'local':
         return logs_collection.find_one({
             rule['field']: rule['value'],  # Next rule
-            setting['local_based_on']: log_document['device'],  # Same device
+            setting['local_based_on']: log_document['device'][0],  # Same device
             'insert_time': {
                 '$gte': last_log_time,  # After last log we have
                 '$lte': time_delta}    # Before: (Last log + Timeout) = delta
