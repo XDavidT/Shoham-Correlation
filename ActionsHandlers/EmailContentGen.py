@@ -1,4 +1,3 @@
-
 def HTML_Template(log_document):
     html = """\
     <html>
