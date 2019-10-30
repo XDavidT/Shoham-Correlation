@@ -11,7 +11,7 @@ from ActiveFunctions.SemiAlert import CheckSemi
 # CheckSemi()
 
 async def main():
-    main_sync() # Only when starting
+    setting = load_setting()
     while True:
         LogsTracker_FirstTrigger = loop.create_task(LogsTracker_service())
         LogsTracker_SemiAlert = loop.create_task(CheckSemi())
@@ -22,7 +22,8 @@ async def main():
 
 
 # Get setting from setting file (json)
-setting = load_setting()
+
+main_sync()  # Only when starting
 
 if __name__ == "__main__":
         try:

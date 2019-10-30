@@ -22,7 +22,7 @@ def SuccessEvent(client, log_document,b_setting):
         print("Error to add to success DB the new offense")
         print(e)
         return
-    # if(log_document['alert']['email']):
+    # if(log_document['alerts']['email']):
     #     AlertOnEmail(log_document)
     AlertOnEmail(log_document)
 

@@ -28,14 +28,12 @@ def load_alert_setting():
 
 
 def load_rules():
-    check_cache_dir()
     with open('cache/rules.json') as rules_file:
         rules = json.load(rules_file)
     return rules
 
 
 def load_events():
-    check_cache_dir()
     with open('cache/events.json') as events_file:
         events = json.load(events_file)
     return events
@@ -48,6 +46,7 @@ def load_events():
 def sync_rules():
     b_setting = load_base_setting()
     try:
+        check_cache_dir()
         client = Mongo_Connection()
         rules_collection = client[b_setting['policy-db-name']][b_setting['rules-collection-name']]
         with open('cache/rules.json', 'w') as rules_cache:
@@ -67,6 +66,7 @@ def sync_rules():
 def sync_events():
     b_setting = load_base_setting()
     try:
+        check_cache_dir()
         client = Mongo_Connection()
         events_collection = client[b_setting['policy-db-name']][b_setting['events-collection-name']]
         with open('cache/events.json', 'w') as events_cache:
@@ -90,7 +90,7 @@ def sync_setting(what_setting):
         setting_collection = client[b_setting['system-mgm-db-name']][b_setting['setting-collection-name']]
         setting = setting_collection.find_one({'_id': what_setting})
 
-        with open('setting/'+what_setting+'.json','w') as setting_file:
+        with open('setting/'+what_setting+'.json','w+') as setting_file:
             setting_file.write(json.dumps(setting))
 
     except Exception as e:
