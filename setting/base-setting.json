@@ -1,5 +1,5 @@
 {
-  "mongo-server": "mongodb+srv://siem:iCDoqbyTT3xh@cluster0-ecrrx.gcp.mongodb.net/clientManager?retryWrites=true&w=majority",
+  "mongo-server": "mongodb+srv://siem:iCDoqbyTT3xh@cluster0-ecrrx.gcp.mongodb.net/test?retryWrites=true&w=majority",
   "mongo-port": "27018",
   "logs-db-name": "clientManager",
   "logs-collection-name": "clientLog",
