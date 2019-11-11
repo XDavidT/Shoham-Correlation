@@ -18,6 +18,9 @@ def logs_tracker_service():
     last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=int(setting['logs-from-X-hours']))  # TimeDelta
 
     for event in events:                                          # Search for each event
+        if events[event]['enable'] == 'false':
+            break
+
         devices = []
         try:
             rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
