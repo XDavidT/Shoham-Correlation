@@ -2,9 +2,10 @@ import datetime
 from CacheHandler import load_setting, load_base_setting, load_events, load_rules
 from MongoHandler import *
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-# TODO: Separate type local/global
-async def LogsTracker_service():
-    print("LogsTracker_service - Flag 1#")
+
+
+def logs_tracker_service():
+    print("logs_tracker_service - Flag 1#")
     # Getting all data from Cache (from db sync)
     setting = load_setting()
     b_setting = load_base_setting()
@@ -12,41 +13,46 @@ async def LogsTracker_service():
     rules = load_rules()
 
     # Get cursor to mongo collection - Client manager -> logs
-    client = Mongo_Connection()
+    client = mongo_connection()
     logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
-    last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=setting['logs-from-X-hours']) # Time Delta
+    last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=int(setting['logs-from-X-hours']))  # TimeDelta
 
     for event in events:                                          # Search for each event
         devices = []
-        rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
-        print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
+        try:
+            rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
+            print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
 
-        results = logs_collection.find(                 # Build the query
-            {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
-             rule['field']: rule['value']})             # User first rule field:value
+            results = logs_collection.find(                 # Build the query
+                {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
+                 rule['field']: rule['value']})             # User first rule field:value
 
-        if results.count() > 0:     # This line check that anything came up in the search
-            # -- Local -- #
-            if events[event]['type'] == 'local':                # Log is LOCAL only, and need to watch it.
-                for log in results:
-                    if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
-                        devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
-                        DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']])
+            if results.count() > 0:     # This line check that anything came up in the search
+                # -- Local -- #
+                if events[event]['type'] == 'local':                # Log is LOCAL only, and need to watch it.
+                    for log in results:
+                        if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
+                            devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
+                            DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']])
 
-            # -- Global -- #
-            elif events[event]['type'] == "global":             # Log is GLOBAL, and need to get the scale
-                logs = []
-                for log in results:                             # We only care how much Devices have the log
-                    if log[setting['local_based_on']] not in devices:   # No double event from same device
-                        devices.append(log[setting['local_based_on']])
-                        logs.append(log)
-                DumpDocumentToMongo(client, events[event], logs, devices=devices)
+                # -- Global -- #
+                elif events[event]['type'] == "global":             # Log is GLOBAL, and need to get the scale
+                    logs = []
+                    for log in results:                             # We only care how much Devices have the log
+                        if log[setting['local_based_on']] not in devices:   # No double event from same device
+                            devices.append(log[setting['local_based_on']])
+                            logs.append(log)
+                    DumpDocumentToMongo(client, events[event], logs, devices=devices)
 
-            # -- Unknown -- #
+                # -- Unknown -- #
+                else:
+                    print('no event type - error')
             else:
-                print('no event type - error')
-        else:
-            print("No logs match for that")
+                print("No logs match for that")
+        except KeyError as e:
+            print("Can't read event %s named: %s" % (events[event]['_id'], events[event]['name']))
+        except Exception as e:
+            print("Unknown error, details:\n" + e)
     client.close()
     print("Flag 1# is done")
 

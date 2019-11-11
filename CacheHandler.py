@@ -1,4 +1,4 @@
-from MongoHandler import Mongo_Connection
+from MongoHandler import mongo_connection
 import json, os
 
 
@@ -47,7 +47,7 @@ def sync_rules():
     b_setting = load_base_setting()
     try:
         check_cache_dir()
-        client = Mongo_Connection()
+        client = mongo_connection()
         rules_collection = client[b_setting['policy-db-name']][b_setting['rules-collection-name']]
         with open('cache/rules.json', 'w') as rules_cache:
             rules_cache.write('{')
@@ -67,7 +67,7 @@ def sync_events():
     b_setting = load_base_setting()
     try:
         check_cache_dir()
-        client = Mongo_Connection()
+        client = mongo_connection()
         events_collection = client[b_setting['policy-db-name']][b_setting['events-collection-name']]
         with open('cache/events.json', 'w') as events_cache:
             events_cache.write('{')
@@ -86,7 +86,7 @@ def sync_events():
 def sync_setting(what_setting):
     b_setting = load_base_setting()
     try:
-        client = Mongo_Connection()
+        client = mongo_connection()
         setting_collection = client[b_setting['system-mgm-db-name']][b_setting['setting-collection-name']]
         setting = setting_collection.find_one({'_id': what_setting})
 

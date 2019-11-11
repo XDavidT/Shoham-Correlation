@@ -4,11 +4,11 @@ from CacheHandler import load_rules, load_setting, load_base_setting
 from ActiveFunctions.EventDone import *
 
 
-async def CheckSemi():
+def check_semi():
     print("Semi-Alert Flag")
 
     # declaration & tools
-    client = Mongo_Connection()
+    client = mongo_connection()
     b_setting = load_base_setting()
     rules = load_rules()
     semi_collection = client[b_setting['policy-db-name']][b_setting['semi-alert-collection-name']]
@@ -26,21 +26,26 @@ async def CheckSemi():
             curr_step = log_document['step']
             timeout = log_document['rules'][curr_step]['timeout']
             rule_id = log_document['rules'][curr_step]['rule_id']
-            rule = rules[str(rule_id)]
-            last_log_time = log_document['logs'][-1]['insert_time']  # -1 take the last in array
-            time_delta = last_log_time + datetime.timedelta(seconds=timeout)
-            logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
+            try:
+                rule = rules[str(rule_id)]
+                last_log_time = log_document['logs'][-1]['insert_time']  # -1 take the last in array
+                time_delta = last_log_time + datetime.timedelta(seconds=timeout)
+                logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
 
-            log = FindLog(logs_collection,log_document,rule,time_delta,last_log_time)
-            if (log is None):  # If nothing returned
-                print("NoneType !") # Dev print
-                CheckRelevant(client,log_document,time_delta,b_setting)
-                break # stop while true
-            else:
-                # Event that complete in success will return true, then we need to break "while true"
-                if HandleTheLog(semi_collection, log_document, curr_step, log):
-                    SuccessEvent(client, log_document,b_setting)
-                    break
+                log = FindLog(logs_collection,log_document,rule,time_delta,last_log_time)
+                if log is None:  # If nothing returned
+                    print("NoneType !") # Dev print
+                    CheckRelevant(client,log_document,time_delta,b_setting)
+                    break  # stop while true
+                else:
+                    # Event that complete in success will return true, then we need to break "while true"
+                    if HandleTheLog(semi_collection, log_document, curr_step, log):
+                        SuccessEvent(client, log_document,b_setting)
+                        break
+            except KeyError as e:
+                print("Cant translate rule id:" + rule_id)
+            except Exception as e:
+                print("Unknown error: \n" + e)
 
 
     print("Flag 2# is done !")
