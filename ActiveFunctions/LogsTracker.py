@@ -17,9 +17,9 @@ def logs_tracker_service():
     logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
     last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=int(setting['logs-from-X-hours']))  # TimeDelta
 
-    for event in events:                                          # Search for each event
+    for event in events:                        # Search for each event
         if events[event]['enable'] == 'false':
-            break
+            continue                            # Go to next event without stopping loop
 
         devices = []
         try:
@@ -32,14 +32,14 @@ def logs_tracker_service():
 
             if results.count() > 0:     # This line check that anything came up in the search
                 # -- Local -- #
-                if events[event]['type'] == 'local':                # Log is LOCAL only, and need to watch it.
+                if events[event]['type'] == 'Local':                # Log is LOCAL only, and need to watch it.
                     for log in results:
                         if log[setting['local_based_on']] not in devices:   # Based on Host/MAC/IP by prefer
                             devices.append(log[setting['local_based_on']])  # Using list check that no double log will be
                             DumpDocumentToMongo(client, events[event], log,device_name=log[setting['local_based_on']])
 
                 # -- Global -- #
-                elif events[event]['type'] == "global":             # Log is GLOBAL, and need to get the scale
+                elif events[event]['type'] == "Global":             # Log is GLOBAL, and need to get the scale
                     logs = []
                     for log in results:                             # We only care how much Devices have the log
                         if log[setting['local_based_on']] not in devices:   # No double event from same device
@@ -53,9 +53,10 @@ def logs_tracker_service():
             else:
                 print("No logs match for that")
         except KeyError as e:
-            print("Can't read event %s named: %s" % (events[event]['_id'], events[event]['name']))
-        except Exception as e:
-            print("Unknown error, details:\n" + e)
+            print("Can't read event %s named: %s " % (events[event]['_id'], events[event]['name']))
+            print("Details: + " + e)
+        except Exception as err:
+            print("Unknown error, details:\n" + str(err))
     client.close()
     print("Flag 1# is done")
 
@@ -75,11 +76,11 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#S
     # One rule & one repeat, we done
-    if (len(event['rules']) == 1 and event['rules'][0]['repeated'] == 1):
+    if (len(event['rules']) == 1 and int(event['rules'][0]['repeated']) == 1):
         log_dump['curr_repeat'] = 1
 
     # If the current rule need to be repeat
-    elif(event['rules'][0]['repeated'] > 1):
+    elif(int(event['rules'][0]['repeated']) > 1):
         log_dump['curr_repeat'] = 1
 
     # Or we need to go next rule
@@ -88,7 +89,7 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
 
 
     # Check for global/ local
-    if(event['type'] == "global"):
+    if(event['type'] == "Global"):
         log_dump['device'] = devices
         log_dump['logs'] = log
     # But if it's local, it's need one device per each semi-event
@@ -104,7 +105,7 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
         We need to check that no duplicate will be in our semi-event DB
         by this statement we can assure this type of event & this device aren't there
         '''
-        if ( event['type'] == "local"
+        if ( event['type'] == "Local"
                 and
                 (semi_open.find_one({'event':event['_id'], 'device':device_name}) is not None) ):
             print("Already in handle...")

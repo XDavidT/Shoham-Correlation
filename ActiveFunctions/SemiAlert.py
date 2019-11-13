@@ -23,9 +23,9 @@ def check_semi():
     for log_document in semi_collection.find({}):   # find all the waiting logs
         while True:
             # Handle one document in time
-            curr_step = log_document['step']
-            timeout = log_document['rules'][curr_step]['timeout']
-            rule_id = log_document['rules'][curr_step]['rule_id']
+            curr_step = int(log_document['step'])
+            timeout = int(log_document['rules'][curr_step]['timeout'])
+            rule_id = int(log_document['rules'][curr_step]['rule_id'])
             try:
                 rule = rules[str(rule_id)]
                 last_log_time = log_document['logs'][-1]['insert_time']  # -1 take the last in array
@@ -45,7 +45,7 @@ def check_semi():
             except KeyError as e:
                 print("Cant translate rule id:" + rule_id)
             except Exception as e:
-                print("Unknown error: \n" + e)
+                print("Unknown error: \n" + str(e))
 
 
     print("Flag 2# is done !")
@@ -54,7 +54,7 @@ def check_semi():
 
 def FindLog(logs_collection,log_document, rule,time_delta,last_log_time):
     setting = load_setting()
-    if log_document['type'] == 'local':
+    if log_document['type'] == 'Local':
         return logs_collection.find_one({
             rule['field']: rule['value'],  # Next rule
             setting['local_based_on']: log_document['device'][0],  # Same device
@@ -63,7 +63,7 @@ def FindLog(logs_collection,log_document, rule,time_delta,last_log_time):
                 '$lte': time_delta}    # Before: (Last log + Timeout) = delta
         })     #TODO: check error massage
 
-    elif log_document['type'] == "global":
+    elif log_document['type'] == "Global":
         log_list = []
         results = logs_collection.find({
             rule['field']: rule['value'],  # Next rule
@@ -87,17 +87,17 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
         '''
         return True          # In this case, the function will be stop
 
-    if log_document['rules'][curr_step]['repeated'] > log_document['curr_repeat']:
+    if int(log_document['rules'][curr_step]['repeated']) > int(log_document['curr_repeat']):
         log_document['curr_repeat'] += 1
 
-    elif log_document['rules'][curr_step]['repeated'] == log_document['curr_repeat']:
+    elif int(log_document['rules'][curr_step]['repeated']) == int(log_document['curr_repeat']):
         log_document['curr_repeat'] = 0
         log_document['step'] += 1
 
     else:
         print("Unknown handler ")
 
-    if(log_document['type'] == 'local'):
+    if(log_document['type'] == 'Local'):
         log_document['logs'].append(logs)
     else: # We have to add them one by one
         for log in logs:
@@ -116,8 +116,8 @@ def IsDone(log_document):
     curr_step = log_document['step']  # +1 Since step is index of rule | 0 must be count
     sum_steps = len(log_document['rules'])
     if(curr_step == (sum_steps - 1)):
-        curr_repeart = log_document['curr_repeat']
-        sum_repeat = log_document['rules'][curr_step]['repeated']
+        curr_repeart = int(log_document['curr_repeat'])
+        sum_repeat = int(log_document['rules'][curr_step]['repeated'])
         if(curr_repeart == sum_repeat):
             return True
         else:
