@@ -23,7 +23,7 @@ def check_semi():
     for log_document in semi_collection.find({}):   # find all the waiting logs
         while True:
             # Handle one document in time
-            curr_step = int(log_document['step'])
+            curr_step = log_document['step']
             timeout = int(log_document['rules'][curr_step]['timeout'])
             rule_id = int(log_document['rules'][curr_step]['rule_id'])
             try:
@@ -32,15 +32,15 @@ def check_semi():
                 time_delta = last_log_time + datetime.timedelta(seconds=timeout)
                 logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]
 
-                log = FindLog(logs_collection,log_document,rule,time_delta,last_log_time)
+                log = FindLog(logs_collection, log_document, rule, time_delta, last_log_time)
                 if log is None:  # If nothing returned
-                    print("NoneType !") # Dev print
-                    CheckRelevant(client,log_document,time_delta,b_setting)
+                    print("NoneType !")  # Dev print
+                    CheckRelevant(client, log_document, time_delta, b_setting)
                     break  # stop while true
                 else:
                     # Event that complete in success will return true, then we need to break "while true"
                     if HandleTheLog(semi_collection, log_document, curr_step, log):
-                        SuccessEvent(client, log_document,b_setting)
+                        SuccessEvent(client, log_document, b_setting)
                         break
             except KeyError as e:
                 print("Cant translate rule id:" + rule_id)
@@ -87,10 +87,10 @@ def HandleTheLog(semi_collection, log_document,curr_step,logs): #TODO: handle !
         '''
         return True          # In this case, the function will be stop
 
-    if int(log_document['rules'][curr_step]['repeated']) > int(log_document['curr_repeat']):
+    if int(log_document['rules'][curr_step]['repeated']) > log_document['curr_repeat']:
         log_document['curr_repeat'] += 1
 
-    elif int(log_document['rules'][curr_step]['repeated']) == int(log_document['curr_repeat']):
+    elif int(log_document['rules'][curr_step]['repeated']) == log_document['curr_repeat']:
         log_document['curr_repeat'] = 0
         log_document['step'] += 1
 
@@ -116,7 +116,7 @@ def IsDone(log_document):
     curr_step = log_document['step']  # +1 Since step is index of rule | 0 must be count
     sum_steps = len(log_document['rules'])
     if(curr_step == (sum_steps - 1)):
-        curr_repeart = int(log_document['curr_repeat'])
+        curr_repeart = log_document['curr_repeat']
         sum_repeat = int(log_document['rules'][curr_step]['repeated'])
         if(curr_repeart == sum_repeat):
             return True

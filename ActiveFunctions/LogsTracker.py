@@ -71,7 +71,8 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
         'step': 0,  # Mean rule['0'] occur,
         'curr_repeat': 0,
         'type': event['type'],
-        'rules': event['rules']
+        'rules': event['rules'],
+        'alerts': event['alerts']
     }
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Log Dump Customization ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#S

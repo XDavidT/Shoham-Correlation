@@ -14,17 +14,22 @@ def SuccessEvent(client, log_document,b_setting):
         success_collection.insert_one(log_document)
         try:
             semi_collection.delete_one({'_id':log_document['_id']})
+            if (log_document['alerts']['email'] == 'true'):
+                try:
+                    AlertOnEmail(log_document)
+                except Exception as e:
+                    print("Error sending email, details: \n" + str(e))
+                    return
         except Exception as e:
-            print ("Error to remove from semi-collection")
+            print("Error to remove from semi-collection")
             print(e)
             return
     except Exception as e:
         print("Error to add to success DB the new offense")
         print(e)
         return
-    # if(log_document['alerts']['email']):
-    #     AlertOnEmail(log_document)
-    AlertOnEmail(log_document)
+
+
 
 def FailEvent(client,log_document,b_setting):
     semi_collection = client[b_setting['policy-db-name']][b_setting['semi-alert-collection-name']]

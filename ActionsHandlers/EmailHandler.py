@@ -9,8 +9,8 @@ def AlertOnEmail(log_document):
     alrt_set = load_alert_setting()
     msg_content = GetMsgContent(alrt_set)
 
-    msg_content['Subject'] = 'Special alert of event: '
-    msg_content.attach(MIMEText(HTML_Template(log_document),'html')) # Using Html Generator in package
+    msg_content['Subject'] = 'Important event from SIEM system'
+    msg_content.attach(MIMEText(HTML_Template(log_document), 'html'))  # Using Html Generator in package
 
     server = GetServer(alrt_set)
     server.sendmail(alrt_set['email-username'], 'xdavidt@gmail.com', msg_content.as_string())
