@@ -18,8 +18,11 @@ def logs_tracker_service():
     last_time_delta = datetime.datetime.now() - datetime.timedelta(hours=int(setting['logs-from-X-hours']))  # TimeDelta
 
     for event in events:                        # Search for each event
-        if events[event]['enable'] == 'false':
-            continue                            # Go to next event without stopping loop
+        try:
+            if events[event]['enable'] == 'false':
+                continue                            # Go to next event without stopping loop
+        except Exception as e:
+            print("Cant check if event enable or disable\nDetails:  " + e)
 
         devices = []
         try:
@@ -54,7 +57,7 @@ def logs_tracker_service():
                 print("No logs match for that")
         except KeyError as e:
             print("Can't read event %s named: %s " % (events[event]['_id'], events[event]['name']))
-            print("Details: + " + e)
+            print("Details: " + e)
         except Exception as err:
             print("Unknown error, details:\n" + str(err))
     client.close()

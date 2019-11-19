@@ -1,4 +1,5 @@
 {
+  "mongo-server-dev": "mongodb://siem.davidt.net:27018",
   "mongo-server": "mongodb+srv://siem:iCDoqbyTT3xh@cluster0-ecrrx.gcp.mongodb.net/test?retryWrites=true&w=majority",
   "mongo-port": "27018",
   "logs-db-name": "clientManager",
