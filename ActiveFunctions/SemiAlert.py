@@ -28,6 +28,7 @@ def check_semi():
             rule_id = int(log_document['rules'][curr_step]['rule_id'])
             try:
                 rule = rules[str(rule_id)]
+                print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
                 last_log_time = log_document['logs'][-1]['insert_time']  # -1 take the last in array
                 time_delta = last_log_time + datetime.timedelta(seconds=timeout)
                 logs_collection = client[b_setting['logs-db-name']][b_setting['logs-collection-name']]

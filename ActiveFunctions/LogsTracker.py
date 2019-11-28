@@ -22,7 +22,7 @@ def logs_tracker_service():
             if events[event]['enable'] == 'false':
                 continue                            # Go to next event without stopping loop
         except Exception as e:
-            print("Cant check if event enable or disable\nDetails:  " + e)
+            print("Cant check if event enable or disable\nDetails:  " + str(e))
 
         devices = []
         try:
