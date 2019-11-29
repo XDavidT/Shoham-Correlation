@@ -1,11 +1,12 @@
 import datetime
 from CacheHandler import load_setting, load_base_setting, load_events, load_rules
 from MongoHandler import *
+from termcolor import colored
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 def logs_tracker_service():
-    print("logs_tracker_service - Flag 1#")
+    print(colored("Start Tracking",'yellow'))
     # Getting all data from Cache (from db sync)
     setting = load_setting()
     b_setting = load_base_setting()
@@ -27,7 +28,8 @@ def logs_tracker_service():
         devices = []
         try:
             rule = rules[str(events[event]['rules'][0]['rule_id'])]  # Check only FIRST rule from each event
-            print("Looking for:      " + rule['field'] + ' :  ' + str(rule['value']))  # Dev printing
+            print(colored("Start Checking event "+ event+" | using rule: "+rule['field'] + ' :  ' + str(rule['value']),
+                          'grey','on_blue'))
 
             results = logs_collection.find(                 # Build the query
                 {'insert_time': {'$gte': last_time_delta},  # Time delta ( X time back )
@@ -61,12 +63,12 @@ def logs_tracker_service():
         except Exception as err:
             print("Unknown error, details:\n" + str(err))
     client.close()
-    print("Flag 1# is done")
+    print(colored("Tracking Done",'grey','on_green'))
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 # Only occur once when first rule detect in event - Not Async - run_until_complete
 def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
-    print("Flag 3#")
+    print(colored("Dump to Mongo new Semi alert",'blue'))
     b_setting = load_base_setting()
 
     log_dump = {
@@ -116,7 +118,7 @@ def DumpDocumentToMongo(client, event, log, device_name = None,devices = None):
             return
         else:
             semi_open.insert_one(log_dump)
-            print('Insert Log Status: OK.')           # Dev print
+            print(colored('Insert Log Status: OK.','blue'))           # Dev print
     except Exception as e:
         print("Insert Log Status: Error -> "+str(e))  # Dev print
 

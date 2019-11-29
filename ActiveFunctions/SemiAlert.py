@@ -2,10 +2,11 @@ import datetime
 from MongoHandler import *
 from CacheHandler import load_rules, load_setting, load_base_setting
 from ActiveFunctions.EventDone import *
+from termcolor import colored
 
 
 def check_semi():
-    print("Semi-Alert Flag")
+    print(colored("Semi-Alert Start",'green'))
 
     # declaration & tools
     client = mongo_connection()
@@ -49,7 +50,7 @@ def check_semi():
                 print("Unknown error: \n" + str(e))
 
 
-    print("Flag 2# is done !")
+    print(colored("Semi-Alert Done",'grey','on_green'))
 
 # //////////////////////////////////////////////////////////////////////////////////////////////////////////////////// #
 

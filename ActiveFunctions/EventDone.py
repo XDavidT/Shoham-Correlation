@@ -1,7 +1,10 @@
 from ActionsHandlers.EmailHandler import AlertOnEmail
 import datetime
+from termcolor import colored
 
 def SuccessEvent(client, log_document,b_setting):
+
+    print(colored("Start success process",'green'))
     semi_collection = client[b_setting['policy-db-name']][b_setting["semi-alert-collection-name"]]
     success_collection = client[b_setting['policy-db-name']][b_setting['success-alert-collection-name']]
     log_document['offense_close_time'] = datetime.datetime.now()  # Discover time
@@ -32,6 +35,7 @@ def SuccessEvent(client, log_document,b_setting):
 
 
 def FailEvent(client,log_document,b_setting):
+    print(colored("Start success process",'red'))
     semi_collection = client[b_setting['policy-db-name']][b_setting['semi-alert-collection-name']]
     fail_collection = client[b_setting['policy-db-name']][b_setting['fail-alert-collection-name']]
     log_document['offense-close-time'] = datetime.datetime.now()
