@@ -9,3 +9,6 @@ Checkout *setting/base-setting.json*, in that file you can update the DB server.
 Please do not change db/collection names, since other projects use it in that way.
 
 Checkout *setting/alert-setting.json*, in that file you can update the email account to send alerts, or to add other account to alerting.
+
+Tested on 'CentOS 7' with python3, but you can run it in any other OS you want.
+Clone it to your machine, then run `python3 MainService.py`
